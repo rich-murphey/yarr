@@ -7,7 +7,8 @@
 //! worth exposing directly to MCP clients.
 
 use rmcp::model::{
-    GetPromptRequestParams, GetPromptResult, ListPromptsResult, Prompt, PromptMessage, Role,
+    CacheScope, GetPromptRequestParams, GetPromptResult, ListPromptsResult, Prompt, PromptMessage,
+    Role,
 };
 
 pub(super) fn list_prompts() -> ListPromptsResult {
@@ -20,6 +21,8 @@ pub(super) fn list_prompts() -> ListPromptsResult {
             ),
             None,
         )],
+        ttl_ms: Some(0),
+        cache_scope: Some(CacheScope::Private),
         ..Default::default()
     }
 }
