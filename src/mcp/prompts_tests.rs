@@ -13,6 +13,13 @@ fn list_prompts_returns_quick_start() {
 }
 
 #[test]
+fn list_prompts_carries_2026_07_28_cache_fields() {
+    let result = serde_json::to_value(list_prompts()).expect("serializes");
+    assert_eq!(result["ttlMs"], 0);
+    assert_eq!(result["cacheScope"], "private");
+}
+
+#[test]
 fn get_prompt_quick_start_returns_message() {
     let result = get_prompt(rmcp::model::GetPromptRequestParams::new("quick_start"))
         .expect("quick_start should resolve");

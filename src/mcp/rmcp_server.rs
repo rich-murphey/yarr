@@ -14,7 +14,7 @@ use lab_auth::AuthContext;
 use rmcp::{
     ErrorData, RoleServer, ServerHandler,
     model::{
-        CallToolRequestParams, CallToolResponse, CallToolResult, ContentBlock,
+        CacheScope, CallToolRequestParams, CallToolResponse, CallToolResult, ContentBlock,
         GetPromptRequestParams, GetPromptResponse, Implementation, ListPromptsResult,
         ListResourcesResult, ListToolsResult, PaginatedRequestParams, ReadResourceRequestParams,
         ReadResourceResponse, ReadResourceResult, Resource, ResourceContents, ServerCapabilities,
@@ -85,6 +85,8 @@ impl ServerHandler for YarrRmcpServer {
         tracing::debug!(tool_count = tools.len(), "MCP tools listed");
         Ok(ListToolsResult {
             tools,
+            ttl_ms: Some(0),
+            cache_scope: Some(CacheScope::Private),
             ..Default::default()
         })
     }
@@ -187,6 +189,8 @@ impl ServerHandler for YarrRmcpServer {
         require_auth_context(&self.state, &context)?;
         Ok(ListResourcesResult {
             resources: vec![schema_resource()],
+            ttl_ms: Some(0),
+            cache_scope: Some(CacheScope::Private),
             ..Default::default()
         })
     }
