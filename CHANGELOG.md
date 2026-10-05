@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Set `ttlMs` and `cacheScope` on the tools, resources and prompts list results, which MCP `2026-07-28` requires; Claude Code rejected `tools/list` without them.
+- Set `ttlMs` and `cacheScope` on the tools, resources, resource-templates and prompts list results, which MCP `2026-07-28` requires; Claude Code rejected `tools/list` without them.
 - Pin the container builder to Rust 1.97.1 and enforce parity with the repository toolchain.
 - Keep the configurable Compose env file optional so local and validation deployments do not require a host-specific file.
 

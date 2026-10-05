@@ -16,9 +16,9 @@ use rmcp::{
     model::{
         CacheScope, CallToolRequestParams, CallToolResponse, CallToolResult, ContentBlock,
         GetPromptRequestParams, GetPromptResponse, Implementation, ListPromptsResult,
-        ListResourcesResult, ListToolsResult, PaginatedRequestParams, ReadResourceRequestParams,
-        ReadResourceResponse, ReadResourceResult, Resource, ResourceContents, ServerCapabilities,
-        ServerInfo, Tool,
+        ListResourceTemplatesResult, ListResourcesResult, ListToolsResult, PaginatedRequestParams,
+        ReadResourceRequestParams, ReadResourceResponse, ReadResourceResult, Resource,
+        ResourceContents, ServerCapabilities, ServerInfo, Tool,
     },
     service::{Peer, RequestContext},
 };
@@ -195,6 +195,19 @@ impl ServerHandler for YarrRmcpServer {
         })
     }
 
+    async fn list_resource_templates(
+        &self,
+        _request: Option<PaginatedRequestParams>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<ListResourceTemplatesResult, ErrorData> {
+        require_auth_context(&self.state, &context)?;
+        Ok(ListResourceTemplatesResult {
+            ttl_ms: Some(0),
+            cache_scope: Some(CacheScope::Private),
+            ..Default::default()
+        })
+    }
+
     async fn read_resource(
         &self,
         request: ReadResourceRequestParams,
@@ -213,6 +226,8 @@ impl ServerHandler for YarrRmcpServer {
         Ok(ReadResourceResult::new(vec![
             ResourceContents::text(text, SCHEMA_RESOURCE_URI).with_mime_type("application/json"),
         ])
+        .with_ttl_ms(0)
+        .with_cache_scope(CacheScope::Private)
         .into())
     }
 
