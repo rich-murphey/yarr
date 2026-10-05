@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Plex generated operations no longer fail with "requires header parameter `X-Plex-Client-Identifier`": the transport sends `X-Plex-Client-Identifier: yarr` and `X-Plex-Product: yarr` on every Plex request (a caller-supplied value replaces the default), and `gen-openapi` marks that header optional for Plex.
+- Plex raw passthrough (`api_get`/`api_post`/`api_put`/`api_delete`) sends `Accept: application/json`, so it returns parsed JSON instead of an XML string.
 - Set `ttlMs` and `cacheScope` on `tools/list`, `resources/list`, `resources/templates/list`, `prompts/list` and `resources/read` results, which MCP `2026-07-28` requires; 2026-07-28 clients such as Claude Code rejected `tools/list` without them.
 - Pin the container builder to Rust 1.97.1 and enforce parity with the repository toolchain.
 - Keep the configurable Compose env file optional so local and validation deployments do not require a host-specific file.
