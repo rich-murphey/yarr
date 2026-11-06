@@ -199,6 +199,7 @@ pub fn parse_capability_command(
         Capability::Stats => super::commands::stats::parse(kind, verb, rest)?,
         Capability::Subtitles => super::commands::subtitles::parse(kind, verb, rest)?,
         Capability::Trace => super::commands::trace::parse(kind, verb, rest)?,
+        Capability::Search => super::commands::search::parse(kind, verb, rest)?,
         _ => None,
     } {
         return Ok(command);

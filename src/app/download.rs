@@ -1,5 +1,5 @@
-//! DownloadClient capability: business-layer methods for SABnzbd (C5) and
-//! qBittorrent (C5).
+//! DownloadClient capability: business-layer methods for SABnzbd (C5),
+//! qBittorrent (C5) and NZBGet.
 //!
 //! The two clients share a verb set (`queue`, `add`, `pause`, `resume`,
 //! `remove`) but their APIs diverge *completely*: SABnzbd is a `?mode=` query API
@@ -19,9 +19,13 @@
 //! `remove` defaults `delete_files` to `false` (opt-in via `--delete-files` /
 //! `delete_files=true`).
 //!
+//! NZBGet is a JSON-RPC API with neither shape, so each method checks for it
+//! first and dispatches to [`nzbget`]. `history` is implemented for NZBGet only.
+//!
 //! The curated-command *descriptors* (registry table) live in
 //! `src/actions/commands/download.rs`, not here — this module only holds logic.
 
+pub mod nzbget;
 pub mod qbit;
 pub mod sab;
 
@@ -30,7 +34,7 @@ use serde_json::Value;
 
 use crate::app::YarrService;
 use crate::capability::Capability;
-use crate::config::ServiceConfig;
+use crate::config::{ServiceConfig, ServiceKind};
 
 impl YarrService {
     /// Resolve a DownloadClient service and verify its capability. Central helper
@@ -46,6 +50,9 @@ impl YarrService {
     /// (`/api/v2/torrents/info`).
     pub async fn download_queue(&self, service: &str) -> Result<Value> {
         let config = self.download_context(service)?;
+        if config.kind == ServiceKind::Nzbget {
+            return nzbget::queue(self, config).await;
+        }
         if config.kind.descriptor().query_api() {
             sab::queue(self, config).await
         } else {
@@ -57,6 +64,9 @@ impl YarrService {
     /// immediately, no confirm gate.
     pub async fn download_add(&self, service: &str, url: &str) -> Result<Value> {
         let config = self.download_context(service)?;
+        if config.kind == ServiceKind::Nzbget {
+            return nzbget::add(self, config, url).await;
+        }
         if config.kind.descriptor().query_api() {
             sab::add(self, config, url).await
         } else {
@@ -68,6 +78,9 @@ impl YarrService {
     /// destructive — runs immediately, no confirm gate.
     pub async fn download_pause(&self, service: &str, id: Option<&str>) -> Result<Value> {
         let config = self.download_context(service)?;
+        if config.kind == ServiceKind::Nzbget {
+            return nzbget::pause(self, config, id).await;
+        }
         if config.kind.descriptor().query_api() {
             sab::pause(self, config, id).await
         } else {
@@ -79,6 +92,9 @@ impl YarrService {
     /// destructive — runs immediately, no confirm gate.
     pub async fn download_resume(&self, service: &str, id: Option<&str>) -> Result<Value> {
         let config = self.download_context(service)?;
+        if config.kind == ServiceKind::Nzbget {
+            return nzbget::resume(self, config, id).await;
+        }
         if config.kind.descriptor().query_api() {
             sab::resume(self, config, id).await
         } else {
@@ -96,11 +112,26 @@ impl YarrService {
         delete_files: bool,
     ) -> Result<Value> {
         let config = self.download_context(service)?;
+        if config.kind == ServiceKind::Nzbget {
+            return nzbget::remove(config);
+        }
         if config.kind.descriptor().query_api() {
             sab::remove(self, config, id, delete_files).await
         } else {
             qbit::remove(self, config, id, delete_files).await
         }
+    }
+
+    /// List finished downloads, slimmed. READ. NZBGet only.
+    pub async fn download_history(&self, service: &str) -> Result<Value> {
+        let config = self.download_context(service)?;
+        if config.kind != ServiceKind::Nzbget {
+            anyhow::bail!(
+                "download_history is implemented for nzbget only, not {}",
+                config.kind.as_str()
+            );
+        }
+        nzbget::history(self, config).await
     }
 }
 

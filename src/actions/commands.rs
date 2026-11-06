@@ -11,11 +11,13 @@
 // capabilities (ArrManager, Indexer, Requests, MediaServer) are fully served by
 // generated OpenAPI operations via Code Mode — no curated commands.
 pub mod download;
+pub mod search;
 pub mod stats;
 pub mod subtitles;
 pub mod trace;
 
 pub use download::DOWNLOAD_COMMANDS;
+pub use search::SEARCH_COMMANDS;
 pub use stats::STATS_COMMANDS;
 pub use subtitles::SUBTITLES_COMMANDS;
 pub use trace::TRACE_COMMANDS;

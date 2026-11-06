@@ -150,6 +150,13 @@ fn curated_param_description(param: &str) -> Option<&'static str> {
         "fields" => {
             "Item field names to include for action=list. Summary counts always use the full upstream rows."
         }
+        "query" => "Search text for action=newznab_search.",
+        "search_type" => {
+            "Newznab search function for action=newznab_search: search (default), tvsearch or movie."
+        }
+        "category" => {
+            "Comma-separated Newznab category ids for action=newznab_search, e.g. 2000 (movies) or 5000 (TV)."
+        }
         "start" | "length" => {
             "Pagination knob for action=stats_history (start=offset, length=page size)."
         }

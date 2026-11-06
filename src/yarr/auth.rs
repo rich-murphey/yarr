@@ -156,6 +156,12 @@ pub fn apply_auth(
             }
             request
         }
+        AuthStyle::BasicAuth => {
+            if let Some(username) = service.username.as_deref() {
+                request = request.basic_auth(username, service.password.as_deref());
+            }
+            request
+        }
         // Plex token is injected as the X-Plex-Token query param in build_url.
         AuthStyle::PlexToken => request,
         // apikey is injected in the query string / cookie session is established

@@ -5,8 +5,8 @@ use super::*;
 use std::str::FromStr;
 
 #[test]
-fn service_kind_all_has_11_entries() {
-    assert_eq!(ServiceKind::ALL.len(), 11);
+fn service_kind_all_has_13_entries() {
+    assert_eq!(ServiceKind::ALL.len(), 13);
 }
 
 /// Golden-value pin for every kind's `as_str` + `default_status_path`. Guards the
@@ -35,6 +35,8 @@ fn kind_rows_pin_exact_values() {
         ),
         (ServiceKind::Plex, "plex", "/identity"),
         (ServiceKind::Jellyfin, "jellyfin", "/System/Info/Public"),
+        (ServiceKind::Nzbget, "nzbget", "/jsonrpc/version"),
+        (ServiceKind::Newznab, "newznab", "/api?t=caps"),
     ];
     assert_eq!(expected.len(), ServiceKind::ALL.len());
     for (kind, as_str, status_path) in expected {

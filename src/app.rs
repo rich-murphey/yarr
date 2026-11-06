@@ -12,6 +12,7 @@ use crate::{
 pub mod codemode;
 pub mod download;
 pub mod openapi_ops;
+pub mod search;
 pub mod stats;
 pub mod subtitles;
 pub mod trace;

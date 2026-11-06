@@ -61,6 +61,9 @@ fn append_query_auth(
             if service.kind == ServiceKind::Sabnzbd {
                 pairs.append_pair("output", "json");
             }
+            if service.kind == ServiceKind::Newznab {
+                pairs.append_pair("o", "json");
+            }
             if let Some(key) = service.api_key.as_deref() {
                 pairs.append_pair("apikey", key);
             }
@@ -73,6 +76,7 @@ fn append_query_auth(
         AuthStyle::ApiKeyHeader
         | AuthStyle::CookieSession
         | AuthStyle::JellyfinToken
+        | AuthStyle::BasicAuth
         | AuthStyle::BearerToken => {}
     }
 }

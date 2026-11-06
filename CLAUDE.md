@@ -2,7 +2,7 @@
 
 ## What this project is
 
-Rust MCP and CLI server for a media automation fleet. It wraps **11 service kinds**: Sonarr, Radarr, Prowlarr, Overseerr, Jellyfin, Plex (spec-backed, generated) plus SABnzbd, qBittorrent, Tautulli, Bazarr, Tracearr (doc-backed, curated).
+Rust MCP and CLI server for a media automation fleet. It wraps **13 service kinds**: Sonarr, Radarr, Prowlarr, Overseerr, Jellyfin, Plex (spec-backed, generated) plus SABnzbd, qBittorrent, Tautulli, Bazarr, Tracearr, and this fork's NZBGet and Newznab (doc-backed, curated).
 
 | Fact | Value |
 |------|-------|
@@ -277,7 +277,7 @@ Upstream services are configured as a set, not a single endpoint. `YARR_SERVICES
 | `YARR_HTTP_TIMEOUT_SECS` | `30` | Per-request upstream HTTP timeout (seconds). Raise for slow upstreams; the live test harness sets it to 90 (below its 120s per-command kill) so a slow read resolves gracefully instead of being killed mid-flight. `0`/unparseable → 30 |
 | `RUST_LOG` | `info` | Log filter |
 
-`ServiceKind` (11 known kinds): `sonarr`, `radarr`, `prowlarr`, `tautulli`, `overseerr`, `bazarr`, `tracearr`, `sabnzbd`, `qbittorrent`, `plex`, `jellyfin`. Additional OAuth tuning vars (`YARR_MCP_AUTH_*` TTLs, RPM limits, key/sqlite paths, allowed emails/redirect URIs) are defined in `config.rs`.
+`ServiceKind` (13 known kinds): `sonarr`, `radarr`, `prowlarr`, `tautulli`, `overseerr`, `bazarr`, `tracearr`, `sabnzbd`, `qbittorrent`, `plex`, `jellyfin`, `nzbget` (JSON-RPC, basic auth from `USERNAME`/`PASSWORD`), `newznab` (NZBHydra2 or one indexer, `API_KEY`). Additional OAuth tuning vars (`YARR_MCP_AUTH_*` TTLs, RPM limits, key/sqlite paths, allowed emails/redirect URIs) are defined in `config.rs`.
 
 ## Build commands
 

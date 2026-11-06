@@ -1,4 +1,4 @@
-//! DownloadClient (SABnzbd, qBittorrent) curated command descriptors (C5).
+//! DownloadClient (SABnzbd, qBittorrent, NZBGet) curated command descriptors (C5).
 //!
 //! The per-capability const slice the registry concatenates at its single
 //! extension point (`build_curated_commands`). Each
@@ -40,6 +40,18 @@ pub const DOWNLOAD_COMMANDS: &[CommandDescriptor] = &[
         mutates: false,
         typed_params: &[],
         handler: handle_queue,
+    },
+    CommandDescriptor {
+        name: "download_history",
+        capability: Capability::DownloadClient,
+        description: "list finished downloads, slimmed (nzbget only).",
+        required_scope: READ_SCOPE,
+        required_params: &["service"],
+        optional_params: &[],
+        destructive: false,
+        mutates: false,
+        typed_params: &[],
+        handler: handle_history,
     },
     CommandDescriptor {
         name: "download_add",
@@ -106,6 +118,13 @@ fn handle_queue<'a>(svc: &'a YarrService, args: &'a Value) -> CommandFuture<'a> 
     Box::pin(async move {
         let service = string_arg(args, "service")?;
         svc.download_queue(&service).await
+    })
+}
+
+fn handle_history<'a>(svc: &'a YarrService, args: &'a Value) -> CommandFuture<'a> {
+    Box::pin(async move {
+        let service = string_arg(args, "service")?;
+        svc.download_history(&service).await
     })
 }
 

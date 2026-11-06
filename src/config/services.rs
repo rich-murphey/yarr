@@ -45,6 +45,8 @@ pub enum ServiceKind {
     Qbittorrent,
     Plex,
     Jellyfin,
+    Nzbget,
+    Newznab,
 }
 
 /// One declarative row per [`ServiceKind`]: the canonical kebab-case name, the
@@ -63,7 +65,7 @@ struct KindRow {
     aliases: &'static [&'static str],
 }
 
-static KIND_ROWS: [KindRow; 11] = [
+static KIND_ROWS: [KindRow; 13] = [
     KindRow {
         kind: ServiceKind::Sonarr,
         as_str: "sonarr",
@@ -130,11 +132,23 @@ static KIND_ROWS: [KindRow; 11] = [
         default_status_path: "/System/Info/Public",
         aliases: &[],
     },
+    KindRow {
+        kind: ServiceKind::Nzbget,
+        as_str: "nzbget",
+        default_status_path: "/jsonrpc/version",
+        aliases: &[],
+    },
+    KindRow {
+        kind: ServiceKind::Newznab,
+        as_str: "newznab",
+        default_status_path: "/api?t=caps",
+        aliases: &[],
+    },
 ];
 
 impl ServiceKind {
     /// Every known kind, in declaration order. Derived from `KIND_ROWS`.
-    pub const ALL: [Self; 11] = [
+    pub const ALL: [Self; 13] = [
         Self::Sonarr,
         Self::Radarr,
         Self::Prowlarr,
@@ -146,6 +160,8 @@ impl ServiceKind {
         Self::Qbittorrent,
         Self::Plex,
         Self::Jellyfin,
+        Self::Nzbget,
+        Self::Newznab,
     ];
 
     /// Look up this kind's table row.

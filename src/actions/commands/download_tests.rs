@@ -3,7 +3,7 @@ use crate::actions::model::{READ_SCOPE, WRITE_SCOPE};
 use crate::capability::Capability;
 
 /// READ verbs.
-const READ_COMMANDS: &[&str] = &["download_queue"];
+const READ_COMMANDS: &[&str] = &["download_queue", "download_history"];
 /// WRITE verbs (mutating; `download_remove` is additionally destructive).
 const WRITE_COMMANDS: &[&str] = &[
     "download_add",

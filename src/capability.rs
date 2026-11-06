@@ -23,7 +23,7 @@ pub enum Capability {
     ArrManager,
     /// Prowlarr — indexer manager.
     Indexer,
-    /// SABnzbd / qBittorrent — download clients.
+    /// SABnzbd / qBittorrent / NZBGet — download clients.
     DownloadClient,
     /// Plex / Jellyfin — media servers.
     MediaServer,
@@ -35,6 +35,8 @@ pub enum Capability {
     Subtitles,
     /// Tracearr — public stream/activity analytics.
     Trace,
+    /// Newznab API (NZBHydra2 or a single indexer) — release search.
+    Search,
     /// Kinds with no curated command surface yet — generic passthrough only.
     GenericOnly,
 }
@@ -54,6 +56,8 @@ pub enum AuthStyle {
     JellyfinToken,
     /// `Authorization: Bearer ...` header.
     BearerToken,
+    /// HTTP basic auth from the service's username/password (NZBGet).
+    BasicAuth,
 }
 
 /// Static, per-kind description of api versioning, auth, and resource shape.
@@ -189,6 +193,22 @@ impl ServiceKind {
                 auth_style: AuthStyle::ApiKeyHeader,
                 resource_noun: None,
                 path_allowlist: &["/api", "/api/v2"],
+                has_metadata_profiles: false,
+            },
+            Self::Nzbget => KindDescriptor {
+                capability: Capability::DownloadClient,
+                api_prefix: "/jsonrpc",
+                auth_style: AuthStyle::BasicAuth,
+                resource_noun: None,
+                path_allowlist: &["/jsonrpc"],
+                has_metadata_profiles: false,
+            },
+            Self::Newznab => KindDescriptor {
+                capability: Capability::Search,
+                api_prefix: "/api",
+                auth_style: AuthStyle::QueryApiKey,
+                resource_noun: None,
+                path_allowlist: &["/api"],
                 has_metadata_profiles: false,
             },
         }

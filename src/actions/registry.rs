@@ -305,7 +305,7 @@ pub struct CommandDescriptor {
 /// adds its slice to that array and nowhere else.
 fn build_curated_commands() -> Vec<CommandDescriptor> {
     use crate::actions::commands::{
-        DOWNLOAD_COMMANDS, STATS_COMMANDS, SUBTITLES_COMMANDS, TRACE_COMMANDS,
+        DOWNLOAD_COMMANDS, SEARCH_COMMANDS, STATS_COMMANDS, SUBTITLES_COMMANDS, TRACE_COMMANDS,
     };
 
     // ── capability beads append their const slice here ───────────────────────
@@ -316,6 +316,7 @@ fn build_curated_commands() -> Vec<CommandDescriptor> {
         STATS_COMMANDS,
         SUBTITLES_COMMANDS,
         TRACE_COMMANDS,
+        SEARCH_COMMANDS,
     ];
 
     registries

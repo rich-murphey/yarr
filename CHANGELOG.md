@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `nzbget` service kind (DownloadClient): status (`/jsonrpc/version`), `download_queue`, `download_add` (NZBGet fetches the URL), `download_pause`/`download_resume` for one NZBID or the whole queue, and a new `download_history` command (NZBGet only; CLI `history`). JSON-RPC over `/jsonrpc` with HTTP basic auth from `YARR_<NAME>_USERNAME`/`PASSWORD`.
+- `newznab` service kind (new Search capability) for NZBHydra2 or a single Newznab indexer: status (`t=caps`) and `newznab_search` (CLI `search --query Q [--search-type search|tvsearch|movie] [--category C] [--limit N]`), returning title, guid, NZB link, pubDate, category and size. Item `attr` rows are dropped because they can carry upstream indexer api keys.
 - Plex on-demand subtitles: `plex.search_subtitles({ids, language, hearingImpaired, forced})` returns candidate subtitle streams (release name, provider, score, SDH/forced flags) without attaching anything, and `plex.download_subtitles({ids, key})` downloads the chosen candidate. The vendored spec has no download operation and mislabels the search, so `gen-openapi` applies an audited correction to it.
 
 ### Fixed

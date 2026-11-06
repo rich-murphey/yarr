@@ -1,4 +1,5 @@
-//! CLI parse module for DownloadClient curated commands (sabnzbd, qbittorrent).
+//! CLI parse module for DownloadClient curated commands (sabnzbd, qbittorrent,
+//! nzbget).
 //!
 //! Thin shim: it recognises the curated verbs, maps the friendly kebab CLI verb
 //! to the snake_case registry/MCP action name (`queue` → `download_queue` so it
@@ -23,6 +24,7 @@ use crate::config::ServiceKind;
 /// (`tests/parity.rs`). One entry per DownloadClient curated descriptor.
 pub const VERBS: &[(&str, &str)] = &[
     ("queue", "download_queue"),
+    ("history", "download_history"),
     ("add", "download_add"),
     ("pause", "download_pause"),
     ("resume", "download_resume"),
@@ -45,7 +47,7 @@ pub fn parse(kind: ServiceKind, verb: &str, rest: &[String]) -> Result<Option<Co
     // Branch on the PARSING SHAPE only — keyed by the friendly verb, not a second
     // verb→action mapping.
     match verb {
-        "queue" => {
+        "queue" | "history" => {
             reject_args(rest, verb)?;
             Ok(Some(Command::Curated {
                 action,

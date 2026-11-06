@@ -66,6 +66,8 @@ fn minimal_flags(action: &str) -> &'static [&'static str] {
         "request_search" => &["--query", "foo"],
         // Tracearr.
         "trace_terminate_stream" => &["--id", "stream-1"],
+        // Newznab.
+        "newznab_search" => &["--query", "foo"],
         _ => &[],
     }
 }

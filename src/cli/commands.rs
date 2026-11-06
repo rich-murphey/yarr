@@ -9,6 +9,7 @@
 // Only the doc-based capabilities keep curated CLI verbs. The spec-backed kinds
 // reach their full API via Code Mode generated operations (MCP), not the CLI.
 pub mod download;
+pub mod search;
 pub mod stats;
 pub mod subtitles;
 pub mod trace;
@@ -27,6 +28,7 @@ pub fn capability_verb_tables() -> &'static [(Capability, &'static [(&'static st
         (Capability::Stats, stats::VERBS),
         (Capability::Subtitles, subtitles::VERBS),
         (Capability::Trace, trace::VERBS),
+        (Capability::Search, search::VERBS),
     ]
 }
 
