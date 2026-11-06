@@ -56,7 +56,7 @@ pub enum Command {
     /// `yarr <service> op <name> [--args JSON]` — invoke a generated OpenAPI
     /// operation directly (the spec-backed kinds' surface). Mirrors the
     /// in-Code-Mode `<service>.<op>(args)` callable but reachable from the CLI —
-    /// runs immediately, including destructive DELETE ops.
+    /// runs through the shared dispatch, which refuses DELETE ops (rich-murphey/yarr#1).
     Op {
         service: String,
         op: String,

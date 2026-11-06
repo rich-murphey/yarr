@@ -1,4 +1,4 @@
-use super::{Command, SetupCommand, parse_args_from, usage};
+use super::{Command, SetupCommand, parse_args_from, run, usage};
 use serde_json::json;
 
 #[test]
@@ -156,5 +156,49 @@ fn usage_lists_grammar_and_services() {
         "Services:",
     ] {
         assert!(text.contains(expected), "usage missing {expected}");
+    }
+}
+
+#[tokio::test]
+async fn delete_and_delete_ops_are_refused_for_sonarr_and_radarr() {
+    use crate::config::{ServiceConfig, ServiceKind, YarrConfig};
+    let service = |name: &str, kind| ServiceConfig {
+        name: name.into(),
+        kind,
+        base_url: "http://localhost:1".into(),
+        api_key: Some("test".into()),
+        ..ServiceConfig::default()
+    };
+    let cfg = YarrConfig {
+        services: vec![
+            service("sonarr", ServiceKind::Sonarr),
+            service("radarr", ServiceKind::Radarr),
+        ],
+    };
+    let commands = [
+        Command::Delete {
+            service: "sonarr".into(),
+            path: "/api/v3/series/1".into(),
+            body: None,
+        },
+        Command::Delete {
+            service: "radarr".into(),
+            path: "/api/v3/movie/1".into(),
+            body: None,
+        },
+        Command::Op {
+            service: "sonarr".into(),
+            op: "delete_series_by_id".into(),
+            args: serde_json::json!({ "id": 1 }),
+        },
+        Command::Op {
+            service: "radarr".into(),
+            op: "delete_movie_by_id".into(),
+            args: serde_json::json!({ "id": 1 }),
+        },
+    ];
+    for cmd in commands {
+        let err = run(cmd, &cfg).await.expect_err("delete must be refused");
+        assert!(err.to_string().contains("refused"), "{err}");
     }
 }
