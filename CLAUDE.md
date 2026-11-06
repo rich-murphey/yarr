@@ -446,6 +446,7 @@ python3 scripts/check-doc-links.py
 
 ## Common gotchas
 
+- **Not every CLI verb goes through `execute_service_action`.** `status`, `get`, `post` and `put` in `src/cli.rs` still call `YarrService` directly, so a guard added only in the shared dispatch misses them (the delete refusal missed `delete`/`op` until 525043d). Test a new guard through `cli::run`, not only the dispatch.
 - **Stdio mode suppresses logs** — `main.rs` sets log level to `warn` in stdio mode so JSON-RPC is not corrupted by log lines on stdout.
 - **Scope checks run in `rmcp_server.rs`**, not in `tools.rs`. `tools.rs` only dispatches.
 - **`help` action is public** — `required_scope_for_action("help")` (in `actions.rs`) returns `None`. `service_status` needs `yarr:read`; `api_get`/`api_post`/`op`/`codemode` need `yarr:write`. Unknown actions get `DENY_SCOPE`.
