@@ -39,6 +39,11 @@ pub enum ValidationError {
         kind: String,
         valid_actions: Vec<String>,
     },
+    #[error(
+        "action={action} is refused: this fork runs no delete or remove operation on any \
+         service (rich-murphey/yarr#1); nothing changed"
+    )]
+    DestructiveRefused { action: String },
 }
 
 pub fn is_validation_error(error: &anyhow::Error) -> bool {

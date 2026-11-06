@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- This fork refuses every delete and remove (rich-murphey/yarr#1): `execute_service_action` rejects each destructive-flagged action (`api_delete`, `download_remove`, `stats_delete_image_cache`, `trace_terminate_stream`) and every generated operation whose method is DELETE, on the CLI, MCP and inside Code Mode, before any request is built.
 
 - Relicense Dinglebear-owned original work under AGPL-3.0-only and document separate commercial licensing; third-party material retains its original terms.
 - Regenerate the committed Unraid package and release manifest from the pinned v2.1.0 assets, restoring byte-for-byte reproducibility across umask settings.

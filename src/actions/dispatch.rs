@@ -12,7 +12,9 @@ use serde_json::Value;
 
 use super::help::help_text;
 use super::model::{ValidationError, YarrAction};
-use super::registry::{action_allowed_for_kind, curated_command, valid_actions_for_kind};
+use super::registry::{
+    action_allowed_for_kind, action_is_destructive, curated_command, valid_actions_for_kind,
+};
 use crate::app::YarrService;
 
 /// Validate that `action` (by name) may run against the service named `service_name`.
@@ -77,12 +79,35 @@ fn target_service(action: &YarrAction) -> Option<&str> {
     }
 }
 
+/// Fork policy (rich-murphey/yarr#1): refuse every delete and remove. The *arr
+/// APIs delete series, movies and files from disk in one call, so this fork runs
+/// none of them on any surface (CLI, MCP, or a Code Mode inner call). Covers the
+/// destructive-flagged actions ([`action_is_destructive`]) and every generated
+/// operation whose HTTP method is DELETE.
+fn refuse_destructive(service: &YarrService, action: &YarrAction) -> Result<()> {
+    let refused = match action {
+        YarrAction::Op {
+            service: name, op, ..
+        } => service
+            .kind_of(name)?
+            .and_then(|kind| crate::openapi::find_operation(kind, op))
+            .is_some_and(|spec| spec.method.is_delete())
+            .then(|| format!("op {op}")),
+        _ => action_is_destructive(action.name()).then(|| action.name().to_owned()),
+    };
+    match refused {
+        Some(action) => Err(ValidationError::DestructiveRefused { action }.into()),
+        None => Ok(()),
+    }
+}
+
 pub async fn execute_service_action(service: &YarrService, action: &YarrAction) -> Result<Value> {
     // Shared action×kind guard: runs for every action that targets a service,
     // on both the CLI and MCP paths. No-op for generic/infra actions.
     if let Some(service_name) = target_service(action) {
         validate_action_for_service(service, action.name(), service_name)?;
     }
+    refuse_destructive(service, action)?;
     match action {
         YarrAction::ServiceStatus { service: name } => service.service_status(name).await,
         YarrAction::ApiGet {

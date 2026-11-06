@@ -78,3 +78,80 @@ fn shared_guard_skips_unknown_service_name() {
     validate_action_for_service(&state.service, "set_quality", "not-configured")
         .expect("guard is a no-op for unknown service names");
 }
+
+/// Sonarr + Radarr on an unreachable stub URL: a call that is not refused fails
+/// at the network layer instead.
+fn arr_service() -> YarrService {
+    use crate::config::{ServiceConfig, ServiceKind, YarrConfig};
+    let service = |name: &str, kind| ServiceConfig {
+        name: name.into(),
+        kind,
+        base_url: "http://localhost:1".into(),
+        api_key: Some("test".into()),
+        ..ServiceConfig::default()
+    };
+    let config = YarrConfig {
+        services: vec![
+            service("sonarr", ServiceKind::Sonarr),
+            service("radarr", ServiceKind::Radarr),
+        ],
+    };
+    let client = crate::yarr::YarrClient::new(&config).unwrap();
+    YarrService::new(client, config)
+}
+
+#[tokio::test]
+async fn deletes_are_refused_for_sonarr_and_radarr() {
+    let svc = arr_service();
+    let refused = [
+        YarrAction::ApiDelete {
+            service: "sonarr".into(),
+            path: "/api/v3/series/1".into(),
+            body: None,
+        },
+        YarrAction::ApiDelete {
+            service: "radarr".into(),
+            path: "/api/v3/movie/1".into(),
+            body: None,
+        },
+        YarrAction::Op {
+            service: "sonarr".into(),
+            op: "delete_series_by_id".into(),
+            args: serde_json::json!({ "id": 1, "deleteFiles": true }),
+        },
+        YarrAction::Op {
+            service: "radarr".into(),
+            op: "delete_movie_by_id".into(),
+            args: serde_json::json!({ "id": 1, "deleteFiles": true }),
+        },
+        YarrAction::Op {
+            service: "radarr".into(),
+            op: "delete_moviefile_bulk".into(),
+            args: serde_json::json!({ "body": { "movieFileIds": [1] } }),
+        },
+    ];
+    for action in refused {
+        let err = execute_service_action(&svc, &action)
+            .await
+            .expect_err("delete must be refused");
+        assert!(err.to_string().contains("refused"), "{action:?}: {err}");
+        assert!(crate::actions::is_validation_error(&err));
+    }
+}
+
+#[tokio::test]
+async fn non_delete_ops_are_not_refused() {
+    // A GET op dispatches and fails only at the unreachable stub.
+    let svc = arr_service();
+    for (service, op) in [("sonarr", "get_series"), ("radarr", "get_movie")] {
+        let action = YarrAction::Op {
+            service: service.into(),
+            op: op.into(),
+            args: serde_json::json!({}),
+        };
+        let err = execute_service_action(&svc, &action)
+            .await
+            .expect_err("stub upstream is unreachable");
+        assert!(!err.to_string().contains("refused"), "{op}: {err}");
+    }
+}

@@ -56,9 +56,8 @@ async fn per_service_callable_bakes_in_the_service() {
     // The loopback stub configures a `sonarr` (spec-backed) service, so its
     // generated callables exist. `sonarr.delete_series_by_id({id})` is a generated
     // DELETE op: it dispatches through the `op` action with the service baked
-    // in, all the way to the network (the stub points at unreachable
-    // `localhost:1`) — a clean assertion of the generated per-service callable
-    // path, and that a destructive op is not blocked mid-script.
+    // in, and the shared dispatch refuses it (fork policy, rich-murphey/yarr#1)
+    // before any request is built.
     let service = loopback_state().service;
     let code = r#"
         async () => {
@@ -68,18 +67,14 @@ async fn per_service_callable_bakes_in_the_service() {
     "#;
     let out = service.codemode(code).await.unwrap();
     let result = out["result"].as_str().unwrap();
-    // Never blocked for being a DELETE — the destructive-refusal message must
-    // be absent; the call either "ran" or hit a network error.
-    assert!(!result.contains("destructive"), "got: {result}");
-    assert!(!result.contains("cannot run"), "got: {result}");
+    assert!(result.contains("refused"), "got: {result}");
     assert_eq!(out["calls"][0]["action"], "op");
 }
 
 #[tokio::test]
-async fn codemode_allows_destructive_actions_to_dispatch() {
-    // api_delete is destructive, but Code Mode has no confirmation channel
-    // mid-script, so it just dispatches immediately like any other action —
-    // failing only at the network layer (unreachable stub).
+async fn codemode_refuses_destructive_actions() {
+    // api_delete is destructive; the shared dispatch refuses it inside a script
+    // exactly as on the CLI and MCP surfaces (rich-murphey/yarr#1).
     let service = loopback_state().service;
     let code = r#"
         async () => {
@@ -93,8 +88,7 @@ async fn codemode_allows_destructive_actions_to_dispatch() {
     "#;
     let out = service.codemode(code).await.unwrap();
     let result = out["result"].as_str().unwrap();
-    assert!(!result.contains("destructive"), "got: {result}");
-    assert!(!result.contains("cannot run"), "got: {result}");
+    assert!(result.contains("refused"), "got: {result}");
     assert_eq!(out["calls"][0]["action"], "api_delete");
 }
 
@@ -174,10 +168,10 @@ async fn codemode_describe_ambiguous_bare_type_is_null() {
 }
 
 #[tokio::test]
-async fn codemode_api_client_delete_dispatches() {
+async fn codemode_api_client_delete_is_refused() {
     // The loopback stub configures a `sonarr` service, so `api.sonarr` exists in
-    // the preamble. `.delete` resolves to `api_delete` and dispatches like any
-    // other action — failing only at the network layer (unreachable stub).
+    // the preamble. `.delete` resolves to `api_delete`, which the shared dispatch
+    // refuses (rich-murphey/yarr#1).
     let service = loopback_state().service;
     let code = r#"
         async () => {
@@ -191,6 +185,6 @@ async fn codemode_api_client_delete_dispatches() {
     "#;
     let out = service.codemode(code).await.unwrap();
     let result = out["result"].as_str().unwrap();
-    assert!(!result.contains("destructive"), "got: {result}");
+    assert!(result.contains("refused"), "got: {result}");
     assert_eq!(out["calls"][0]["action"], "api_delete");
 }

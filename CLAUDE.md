@@ -215,6 +215,12 @@ For actions with parameters, extract them with `string_arg`/`i64_arg`/`string_ar
 
 ## Destructive actions
 
+**This fork refuses them all** (rich-murphey/yarr#1): `refuse_destructive` in
+`src/actions/dispatch.rs` rejects every destructive-flagged action and every generated
+DELETE op in `execute_service_action`, so the CLI, MCP and Code Mode never send one.
+The MCP elicitation described below still runs first and is followed by the refusal.
+The rest of this section describes upstream behavior.
+
 `destructive` (`CommandDescriptor.destructive`, SSOT'd through `action_is_destructive`)
 is metadata only — nothing in the app layer refuses to run a destructive action, and
 there is no `confirm` parameter anywhere in the codebase. The only place `destructive`
