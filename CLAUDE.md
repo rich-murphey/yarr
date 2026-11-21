@@ -447,6 +447,7 @@ python3 scripts/check-doc-links.py
 ## Common gotchas
 
 - **Not every CLI verb goes through `execute_service_action`.** `status`, `get`, `post` and `put` in `src/cli.rs` still call `YarrService` directly, so a guard added only in the shared dispatch misses them (the delete refusal missed `delete`/`op` until 525043d). Test a new guard through `cli::run`, not only the dispatch.
+- **Seedbox deploy (`ssh sh`, `~/bin/yarr`): build with `cargo build --release --target x86_64-unknown-linux-musl`, `scp` to `~/bin/yarr.new`, keep the old one as `~/bin/yarr.<sha>`, then `mv` over it.** `yarr mcp` is spawned per client over stdio, so there is no service to restart, and `--version` prints only `2.2.2` with no commit: compare `sha256sum` with the local build (rich-murphey/yarr#5).
 - **Stdio mode suppresses logs** — `main.rs` sets log level to `warn` in stdio mode so JSON-RPC is not corrupted by log lines on stdout.
 - **Scope checks run in `rmcp_server.rs`**, not in `tools.rs`. `tools.rs` only dispatches.
 - **`help` action is public** — `required_scope_for_action("help")` (in `actions.rs`) returns `None`. `service_status` needs `yarr:read`; `api_get`/`api_post`/`op`/`codemode` need `yarr:write`. Unknown actions get `DENY_SCOPE`.
