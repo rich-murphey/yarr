@@ -18,8 +18,7 @@
 //!
 //! Read commands slim bulky analytics payloads. Write commands expose useful
 //! Tautulli maintenance operations; all of them (including the destructive
-//! `stats_delete_image_cache`) run immediately — on MCP, `rmcp_server.rs`
-//! elicits the connected client for confirmation before dispatch reaches here.
+//! `stats_delete_image_cache`) run immediately.
 
 use anyhow::Result;
 use serde_json::{Value, json};
@@ -211,8 +210,7 @@ impl YarrService {
     }
 
     /// GET `?cmd=delete_image_cache` clears Tautulli's regenerable image cache.
-    /// DESTRUCTIVE — on MCP the connected client is elicited for confirmation
-    /// before dispatch reaches here.
+    /// DESTRUCTIVE — runs immediately.
     pub async fn stats_delete_image_cache(&self, service: &str) -> Result<Value> {
         let config = self.stats_context(service)?;
         let data = self.stats_cmd(config, "delete_image_cache", &[]).await?;

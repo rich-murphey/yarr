@@ -81,7 +81,7 @@ pub const ACTION_SPECS: &[ActionSpec] = &[
     // surface, not a casual REST passthrough; the CLI reaches it via the infra
     // verb path). Requires write scope since the script can perform writes,
     // including destructive deletes. Direct CLI runs use the local trust
-    // boundary; MCP runs install an inner-action scope/elicitation guard.
+    // boundary; MCP runs install an inner-action scope guard.
     ActionSpec {
         name: "codemode",
         description: "Run a bounded JavaScript orchestration script.",
@@ -96,10 +96,7 @@ pub const ACTION_SPECS: &[ActionSpec] = &[
     // only (the agent reaches it via the generated `<service>.<op>()` callables);
     // requires write scope since an op may mutate. Generated DELETE ops dispatch
     // through the local CLI trust boundary; MCP Code Mode and flat calls apply
-    // the same inner/outer destructive elicitation policy. Reached directly via
-    // `call_tool` (e.g. flat tool mode), a
-    // destructive op gets the same MCP elicitation prompt as any other
-    // destructive action — see `is_destructive_op_call` in `mcp/rmcp_server.rs`.
+    // the same inner/outer scope checks.
     ActionSpec {
         name: "op",
         description: "Dispatch a generated OpenAPI operation.",
@@ -265,10 +262,7 @@ pub struct CommandDescriptor {
     /// Whether this command is a *destructive* delete.
     ///
     /// `destructive` is metadata only — nothing in the app layer refuses to run
-    /// a destructive action, and there is no `confirm` parameter anywhere. On
-    /// the MCP surface, `destructive` drives an elicitation prompt
-    /// (`src/mcp/elicit.rs::gate_destructive`) before dispatch, including inner
-    /// Code Mode calls. Direct CLI execution retains its local trust boundary.
+    /// a destructive action, and there is no `confirm` parameter anywhere.
     /// The flag also drives schema/help annotations and is the SSOT for
     /// [`action_is_destructive`].
     pub destructive: bool,

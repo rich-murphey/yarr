@@ -20,7 +20,7 @@ use rmcp::{
         ReadResourceRequestParams, ReadResourceResponse, ReadResourceResult, Resource,
         ResourceContents, ServerCapabilities, ServerInfo, Tool,
     },
-    service::{Peer, RequestContext},
+    service::RequestContext,
 };
 use serde_json::{Map, Value};
 
@@ -31,7 +31,7 @@ use crate::{
 
 use crate::server::{AppState, AuthPolicy};
 
-use super::{elicit, prompts, schemas::tool_definitions, tools::execute_tool};
+use super::{prompts, schemas::tool_definitions, tools::execute_tool};
 
 // ── server ────────────────────────────────────────────────────────────────────
 
@@ -48,10 +48,8 @@ pub fn rmcp_server(state: AppState) -> YarrRmcpServer {
 /// S5: `TrustedGatewayUnscoped` disables auth middleware *and* bypasses scope
 /// checks entirely (see `require_auth_context`). When mutating actions are
 /// registered, emit a one-time startup warning so operators know writes are not
-/// scope-gated in this mode. Note that plain writes (and destructive deletes)
-/// run with no per-call scope gate at all in this mode — elicitation is a UX
-/// confirmation, not an authz boundary — so the gateway is the sole authz
-/// boundary for writes.
+/// scope-gated in this mode. Writes, deletes included, run with no per-call
+/// scope gate in this mode, so the gateway is the sole authz boundary for writes.
 fn warn_if_unscoped_with_mutations(state: &AppState) {
     if !matches!(state.auth_policy, AuthPolicy::TrustedGatewayUnscoped) {
         return;
@@ -120,37 +118,10 @@ impl ServerHandler for YarrRmcpServer {
             .map(Value::Object)
             .unwrap_or_else(|| Value::Object(Map::new()));
 
-        // Clone the peer for client interaction (elicitation) and the dispatcher
-        // signature.
-        let peer: Peer<RoleServer> = context.peer.clone();
-
-        // Destructive-delete gate (MCP-only). Before a destructive action
-        // dispatches, ask the connected client to confirm via elicitation. The
-        // tool name IS the service name (the MCP tool is service-named; `action`
-        // is a parameter). `action_is_destructive` only recognizes literal
-        // destructive action names — it has no notion of `op`'s underlying HTTP
-        // method — so a generated DELETE op dispatched via `action=op` (reachable
-        // directly here in `flat` tool mode; in `codemode` mode `op` is only ever
-        // called from inside a script, which never reaches `call_tool` at all —
-        // see `codemode_dispatch`) is checked separately by
-        // `is_destructive_op_call`.
-        if (crate::actions::action_is_destructive(&action)
-            || (action == "op" && is_destructive_op_call(&self.state, &tool_name, &arguments)))
-            && elicit::gate_destructive(&peer, &action, &tool_name).await
-                == elicit::DeleteGate::Declined
-        {
-            tracing::info!(
-                tool = %tool_name,
-                action = %action,
-                "destructive action declined via elicitation; nothing changed"
-            );
-            return declined_result(&action).map(Into::into);
-        }
-
         let started = Instant::now();
         tracing::info!(tool = %tool_name, action = %action, "MCP tool execution started");
 
-        match execute_tool(&self.state, &tool_name, arguments, &peer, auth.cloned()).await {
+        match execute_tool(&self.state, &tool_name, arguments, auth.cloned()).await {
             Ok(result) => {
                 tracing::info!(
                     tool = %tool_name,

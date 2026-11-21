@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- This fork removes upstream's MCP elicitation gate (`src/mcp/elicit.rs`): destructive actions and generated DELETE ops run immediately on MCP, including inner Code Mode calls, as they do on the CLI (Rich, 2026-11-21).
 
 - Relicense Dinglebear-owned original work under AGPL-3.0-only and document separate commercial licensing; third-party material retains its original terms.
 - Regenerate the committed Unraid package and release manifest from the pinned v2.1.0 assets, restoring byte-for-byte reproducibility across umask settings.

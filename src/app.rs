@@ -177,9 +177,8 @@ impl YarrService {
             .await
     }
 
-    /// DELETE passthrough — the one destructive generic verb. On the MCP
-    /// surface, `rmcp_server.rs` elicits the connected client for confirmation
-    /// before dispatch reaches here; the CLI and Code Mode run it immediately.
+    /// DELETE passthrough — the one destructive generic verb. Runs immediately
+    /// on every surface.
     pub async fn api_delete(
         &self,
         service: &str,

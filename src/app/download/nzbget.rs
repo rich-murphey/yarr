@@ -171,13 +171,7 @@ pub(super) async fn remove(
     } else {
         "GroupParkDelete"
     };
-    let ok = call(
-        svc,
-        config,
-        "editqueue",
-        json!([command, "", [nzbid(id)?]]),
-    )
-    .await?;
+    let ok = call(svc, config, "editqueue", json!([command, "", [nzbid(id)?]])).await?;
     Ok(json!({ "ok": ok }))
 }
 

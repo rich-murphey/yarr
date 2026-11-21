@@ -165,9 +165,7 @@ fn cli_verb_capability_matches_registry_capability() {
 
 /// The destructive flag is internally consistent: `destructive` agrees with
 /// `action_is_destructive` (the SSOT lookup), and any destructive command
-/// necessarily mutates. (The CLI and MCP shims share `execute_service_action`;
-/// on MCP, `destructive` additionally drives an elicitation prompt before
-/// dispatch — see `src/mcp/elicit.rs`.)
+/// necessarily mutates. (The CLI and MCP shims share `execute_service_action`.)
 #[test]
 fn destructive_flag_is_internally_consistent() {
     for cmd in curated_commands() {

@@ -87,8 +87,7 @@ impl YarrService {
         .await
     }
 
-    /// DESTRUCTIVE — on MCP the connected client is elicited for confirmation
-    /// before dispatch reaches here.
+    /// DESTRUCTIVE — runs immediately.
     pub async fn trace_terminate_stream(
         &self,
         service: &str,

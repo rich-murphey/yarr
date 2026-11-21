@@ -330,9 +330,9 @@ These actions work for every configured service kind:
 | `snippet_run` | `yarr:write` | `yarr snippet run` / `codemode.run(name, input)` | Run a saved snippet |
 | `snippet_delete` | `yarr:write` | `yarr snippet delete` | Delete a saved snippet |
 
-There is no `confirm` argument. CLI destructive commands dispatch immediately.
-MCP direct and nested Code Mode destructive calls require elicitation and fail
-closed if the peer cannot elicit or approval is not granted.
+There is no `confirm` argument. Destructive commands dispatch immediately on the
+CLI, MCP and inside Code Mode; this fork removed upstream's MCP elicitation prompt
+(rich-murphey/yarr#1).
 
 ## CLI Reference
 

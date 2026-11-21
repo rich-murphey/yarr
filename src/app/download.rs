@@ -13,9 +13,8 @@
 //!
 //! Scope split (locked in the bead): `queue` is READ; `add`, `pause`, `resume`,
 //! and `remove` mutate, so they are WRITE. Only `remove` is *destructive* (it
-//! deletes a download, optionally its data) — on the MCP surface that means
-//! `rmcp_server.rs` elicits the connected client before dispatch reaches here;
-//! the CLI and Code Mode run it immediately, same as any other write.
+//! deletes a download, optionally its data); it runs immediately, same as any
+//! other write.
 //! `remove` defaults `delete_files` to `false` (opt-in via `--delete-files` /
 //! `delete_files=true`).
 //!
@@ -103,8 +102,7 @@ impl YarrService {
     }
 
     /// Remove a download. `delete_files` (default false) also deletes the
-    /// downloaded data. DESTRUCTIVE — on MCP the connected client is elicited
-    /// for confirmation before dispatch reaches here.
+    /// downloaded data. DESTRUCTIVE — runs immediately.
     pub async fn download_remove(
         &self,
         service: &str,

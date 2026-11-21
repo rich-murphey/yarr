@@ -217,13 +217,10 @@ For actions with parameters, extract them with `string_arg`/`i64_arg`/`string_ar
 
 `destructive` (`CommandDescriptor.destructive`, SSOT'd through `action_is_destructive`)
 is metadata only — nothing in the app layer refuses to run a destructive action, and
-there is no `confirm` parameter anywhere in the codebase. The only place `destructive`
-changes behavior is `src/mcp/rmcp_server.rs`, which elicits the connected MCP client
-(`src/mcp/elicit.rs::gate_destructive`) for a real interactive confirmation before a
-destructive action dispatches. There is no way to pre-authorize or skip that prompt
-from the call arguments. A client that cannot elicit fails closed. The CLI is a direct
-trusted operator surface and runs without elicitation. Code Mode scripts reauthorize
-every inner call, and destructive inner calls use the same fail-closed elicitation gate.
+there is no `confirm` parameter anywhere in the codebase. This fork removed upstream's
+MCP elicitation gate (`src/mcp/elicit.rs`; Rich, 2026-11-21, rich-murphey/yarr#1), so a
+destructive action dispatches immediately on the CLI, MCP and inside Code Mode. Code Mode
+still reauthorizes the scope of every inner call.
 
 ## Auth model
 

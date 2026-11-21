@@ -231,11 +231,9 @@ fn agent_guidance(kind: ServiceKind) -> Value {
             "path_allowlist": kind.descriptor().path_allowlist,
         },
         "write_guard": {
-            "model": "Writes run immediately. Only DESTRUCTIVE deletes get an extra step: on the \
-                MCP surface the client is prompted to confirm via elicitation before the delete \
-                runs, including inner Code Mode calls, with no way to skip that prompt from call \
-                arguments. A client that cannot elicit is denied and nothing changes.",
-            "gated_actions": "see x-yarr-action-metadata[*].destructive (true == destructive/elicited on MCP)"
+            "model": "Writes run immediately, DESTRUCTIVE deletes included, on every surface \
+                with no confirmation prompt.",
+            "gated_actions": "none; x-yarr-action-metadata[*].destructive marks deletes that lose data"
         },
         "response_shaping": {
             "default": "slim",

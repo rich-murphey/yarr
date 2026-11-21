@@ -3,7 +3,6 @@
 use std::sync::Arc;
 
 use lab_auth::AuthContext;
-use rmcp::{RoleServer, service::Peer};
 use serde_json::{Map, Value};
 
 use crate::actions::{YarrAction, execute_service_action, required_scope_for_action};
@@ -16,7 +15,6 @@ pub(super) async fn execute_tool(
     state: &AppState,
     name: &str,
     args: Value,
-    peer: &Peer<RoleServer>,
     auth: Option<AuthContext>,
 ) -> anyhow::Result<Value> {
     let guarded_script = name == YARR_TOOL_NAME
@@ -25,11 +23,7 @@ pub(super) async fn execute_tool(
             .and_then(Value::as_str)
             .is_some_and(|action| matches!(action, "codemode" | "snippet_run"));
     if guarded_script {
-        let guard = Arc::new(McpCodeModeGuard {
-            state: state.clone(),
-            peer: peer.clone(),
-            auth,
-        });
+        let guard = Arc::new(McpCodeModeGuard { auth });
         return dispatch_script_with_guard(state, name, args, guard).await;
     }
     dispatch_tool(state, name, args).await
@@ -103,8 +97,6 @@ async fn dispatch_script_with_guard(
 }
 
 struct McpCodeModeGuard {
-    state: AppState,
-    peer: Peer<RoleServer>,
     auth: Option<AuthContext>,
 }
 
@@ -124,57 +116,9 @@ impl CodeModeCallGuard for McpCodeModeGuard {
                 ));
             }
 
-            let (destructive, service_name) = destructive_inner_call(&self.state, action);
-            if !destructive {
-                return Ok(());
-            }
-            if self.peer.supported_elicitation_modes().is_empty() {
-                return Err(format!(
-                    "destructive inner Code Mode action `{}` requires an elicitation-capable MCP client; nothing changed",
-                    action.name()
-                ));
-            }
-            if super::elicit::gate_destructive(&self.peer, action.name(), service_name).await
-                == super::elicit::DeleteGate::Declined
-            {
-                return Err(format!(
-                    "destructive inner Code Mode action `{}` was not confirmed; nothing changed",
-                    action.name()
-                ));
-            }
             Ok(())
         })
     }
-}
-
-fn destructive_inner_call<'a>(state: &AppState, action: &'a YarrAction) -> (bool, &'a str) {
-    let service = match action {
-        YarrAction::ServiceStatus { service }
-        | YarrAction::ApiGet { service, .. }
-        | YarrAction::ApiPost { service, .. }
-        | YarrAction::ApiPut { service, .. }
-        | YarrAction::ApiDelete { service, .. }
-        | YarrAction::Op { service, .. } => service.as_str(),
-        YarrAction::Curated { params, .. } => params
-            .get("service")
-            .and_then(Value::as_str)
-            .unwrap_or(YARR_TOOL_NAME),
-        _ => YARR_TOOL_NAME,
-    };
-    let generated_delete = match action {
-        YarrAction::Op { service, op, .. } => state
-            .service
-            .kind_of(service)
-            .ok()
-            .flatten()
-            .and_then(|kind| crate::openapi::find_operation(kind, op))
-            .is_some_and(|spec| spec.method.is_delete()),
-        _ => false,
-    };
-    (
-        crate::actions::action_is_destructive(action.name()) || generated_delete,
-        service,
-    )
 }
 
 async fn dispatch_service_tool(
