@@ -215,12 +215,6 @@ For actions with parameters, extract them with `string_arg`/`i64_arg`/`string_ar
 
 ## Destructive actions
 
-**This fork refuses them all** (rich-murphey/yarr#1): `refuse_destructive` in
-`src/actions/dispatch.rs` rejects every destructive-flagged action and every generated
-DELETE op in `execute_service_action`, so the CLI, MCP and Code Mode never send one.
-The MCP elicitation described below still runs first and is followed by the refusal.
-The rest of this section describes upstream behavior.
-
 `destructive` (`CommandDescriptor.destructive`, SSOT'd through `action_is_destructive`)
 is metadata only — nothing in the app layer refuses to run a destructive action, and
 there is no `confirm` parameter anywhere in the codebase. The only place `destructive`
@@ -446,7 +440,7 @@ python3 scripts/check-doc-links.py
 
 ## Common gotchas
 
-- **Not every CLI verb goes through `execute_service_action`.** `status`, `get`, `post` and `put` in `src/cli.rs` still call `YarrService` directly, so a guard added only in the shared dispatch misses them (the delete refusal missed `delete`/`op` until 525043d). Test a new guard through `cli::run`, not only the dispatch.
+- **Not every CLI verb goes through `execute_service_action`.** `status`, `get`, `post`, `put`, `delete` and `op` in `src/cli.rs` call `YarrService` directly, so a guard added only in the shared dispatch misses them. Test a new guard through `cli::run`, not only the dispatch.
 - **Seedbox deploy (`ssh sh`, `~/bin/yarr`): build with `cargo build --release --target x86_64-unknown-linux-musl`, `scp` to `~/bin/yarr.new`, keep the old one as `~/bin/yarr.<sha>`, then `mv` over it.** `yarr mcp` is spawned per client over stdio, so there is no service to restart, and `--version` prints only `2.2.2` with no commit: compare `sha256sum` with the local build (rich-murphey/yarr#5).
 - **Stdio mode suppresses logs** — `main.rs` sets log level to `warn` in stdio mode so JSON-RPC is not corrupted by log lines on stdout.
 - **Scope checks run in `rmcp_server.rs`**, not in `tools.rs`. `tools.rs` only dispatches.

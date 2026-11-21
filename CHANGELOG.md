@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `nzbget` service kind (DownloadClient): status (`/jsonrpc/version`), `download_queue`, `download_add` (NZBGet fetches the URL), `download_pause`/`download_resume` for one NZBID or the whole queue, and a new `download_history` command (NZBGet only; CLI `history`). JSON-RPC over `/jsonrpc` with HTTP basic auth from `YARR_<NAME>_USERNAME`/`PASSWORD`.
+- `nzbget` service kind (DownloadClient): status (`/jsonrpc/version`), `download_queue`, `download_add` (NZBGet fetches the URL), `download_pause`/`download_resume` for one NZBID or the whole queue, `download_remove` (`GroupParkDelete`, or `GroupDelete` with `delete_files`), and a new `download_history` command (NZBGet only; CLI `history`). JSON-RPC over `/jsonrpc` with HTTP basic auth from `YARR_<NAME>_USERNAME`/`PASSWORD`.
 - `newznab` service kind (new Search capability) for NZBHydra2 or a single Newznab indexer: status (`t=caps`) and `newznab_search` (CLI `search --query Q [--search-type search|tvsearch|movie] [--category C] [--limit N]`), returning title, guid, NZB link, pubDate, category and size. Item `attr` rows are dropped because they can carry upstream indexer api keys.
 - Plex on-demand subtitles: `plex.search_subtitles({ids, language, hearingImpaired, forced})` returns candidate subtitle streams (release name, provider, score, SDH/forced flags) without attaching anything, and `plex.download_subtitles({ids, key})` downloads the chosen candidate. The vendored spec has no download operation and mislabels the search, so `gen-openapi` applies an audited correction to it.
 
@@ -23,7 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- This fork refuses every delete and remove (rich-murphey/yarr#1): `execute_service_action` rejects each destructive-flagged action (`api_delete`, `download_remove`, `stats_delete_image_cache`, `trace_terminate_stream`) and every generated operation whose method is DELETE, on the CLI, MCP and inside Code Mode, before any request is built. The CLI `delete` and `op` verbs now go through that dispatch instead of calling the service directly.
 
 - Relicense Dinglebear-owned original work under AGPL-3.0-only and document separate commercial licensing; third-party material retains its original terms.
 - Regenerate the committed Unraid package and release manifest from the pinned v2.1.0 assets, restoring byte-for-byte reproducibility across umask settings.

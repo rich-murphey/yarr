@@ -113,7 +113,7 @@ impl YarrService {
     ) -> Result<Value> {
         let config = self.download_context(service)?;
         if config.kind == ServiceKind::Nzbget {
-            return nzbget::remove(config);
+            return nzbget::remove(self, config, id, delete_files).await;
         }
         if config.kind.descriptor().query_api() {
             sab::remove(self, config, id, delete_files).await

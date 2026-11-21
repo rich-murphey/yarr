@@ -5,9 +5,6 @@
 //! (NZBGet's `ControlUsername`/`ControlPassword`, applied in
 //! [`crate::yarr::auth`]). Params are positional JSON values, so caller text is
 //! never spliced into a path or query string (S6).
-//!
-//! `remove` is not implemented: this fork runs no delete (rich-murphey/yarr#1),
-//! and the shared dispatch refuses `download_remove` before reaching here.
 
 use anyhow::{Result, anyhow, bail};
 use reqwest::Method;
@@ -161,12 +158,27 @@ pub(super) async fn resume(
     Ok(json!({ "ok": ok }))
 }
 
-/// Not implemented — see the module docs.
-pub(super) fn remove(config: &ServiceConfig) -> Result<Value> {
-    bail!(
-        "{}: remove is not implemented for NZBGet; this fork runs no delete (rich-murphey/yarr#1)",
-        config.name
+/// Remove one group to history. `delete_files` picks `GroupDelete`, which also
+/// deletes the downloaded data; otherwise `GroupParkDelete` keeps it on disk.
+pub(super) async fn remove(
+    svc: &YarrService,
+    config: &ServiceConfig,
+    id: &str,
+    delete_files: bool,
+) -> Result<Value> {
+    let command = if delete_files {
+        "GroupDelete"
+    } else {
+        "GroupParkDelete"
+    };
+    let ok = call(
+        svc,
+        config,
+        "editqueue",
+        json!([command, "", [nzbid(id)?]]),
     )
+    .await?;
+    Ok(json!({ "ok": ok }))
 }
 
 #[cfg(test)]

@@ -106,32 +106,17 @@ pub async fn run(cmd: Command, cfg: &YarrConfig) -> Result<()> {
             path,
             body,
         } => service.api_put(name, path, body.clone()).await?,
-        // Delete and generated ops run through the shared dispatch, which
-        // refuses every delete (rich-murphey/yarr#1).
         Command::Delete {
             service: name,
             path,
             body,
-        } => {
-            let parsed = crate::actions::YarrAction::ApiDelete {
-                service: name.clone(),
-                path: path.clone(),
-                body: body.clone(),
-            };
-            crate::actions::execute_service_action(&service, &parsed).await?
-        }
+        } => service.api_delete(name, path, body.clone()).await?,
+        // Generated operation dispatch — runs immediately, including DELETE ops.
         Command::Op {
             service: name,
             op,
             args,
-        } => {
-            let parsed = crate::actions::YarrAction::Op {
-                service: name.clone(),
-                op: op.clone(),
-                args: args.clone(),
-            };
-            crate::actions::execute_service_action(&service, &parsed).await?
-        }
+        } => service.execute_operation(name, op, args).await?,
         Command::Help => rest_help(),
         // Code Mode runs through the SAME shared dispatch path as the MCP
         // `codemode` action, so CLI↔MCP behaviour is identical.

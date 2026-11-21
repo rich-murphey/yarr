@@ -190,10 +190,30 @@ async fn non_numeric_id_is_rejected_before_any_request() {
 }
 
 #[tokio::test]
-async fn remove_is_not_implemented() {
-    let svc = nzbget_service("http://localhost:1");
-    let err = svc.download_remove("nzbget", "7", false).await.unwrap_err();
-    assert!(err.to_string().contains("no delete"), "{err}");
+async fn remove_keeps_files_with_group_park_delete() {
+    let (url, rx) = stub(r#"{"version":"1.1","result":true}"#);
+    let out = nzbget_service(&url)
+        .download_remove("nzbget", "7", false)
+        .await
+        .unwrap();
+    assert_eq!(
+        rx.recv().unwrap().body,
+        json!({ "method": "editqueue", "params": ["GroupParkDelete", "", [7]] })
+    );
+    assert_eq!(out, json!({ "ok": true }));
+}
+
+#[tokio::test]
+async fn remove_with_delete_files_uses_group_delete() {
+    let (url, rx) = stub(r#"{"version":"1.1","result":true}"#);
+    nzbget_service(&url)
+        .download_remove("nzbget", "7", true)
+        .await
+        .unwrap();
+    assert_eq!(
+        rx.recv().unwrap().body,
+        json!({ "method": "editqueue", "params": ["GroupDelete", "", [7]] })
+    );
 }
 
 #[tokio::test]
